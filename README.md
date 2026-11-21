@@ -4,8 +4,8 @@
 
 | Integrante | Aportes principales |
 |---|---|
-| Melanie Bermeo | Estructura del proyecto, modelo de usuarios, formato de respuestas y manejo de errores, registro, login con JWT, middlewares de autenticación y rol, script del administrador, pruebas de autenticación, permisos y aislamiento |
-| José Farías | Conexión a la base de datos, modelos de productos y favoritos, datos de ejemplo, CRUD de productos, favoritos, entorno y colección de Postman |
+| Melanie Bermeo | Estructura del proyecto, modelo de usuarios, formato de respuestas y manejo de errores, registro, login con JWT, middlewares de autenticación y rol, script del administrador, pruebas de autenticación, permisos y aislamiento, revisión de código de favoritos, interfaz web opcional |
+| José Farías | Conexión a la base de datos, modelos de productos y favoritos, datos de ejemplo, CRUD de productos, favoritos, entorno y colección de Postman, README parte 2 |
 
 ## Propósito
 
@@ -155,4 +155,23 @@ En resumen: si falta algo o no se puede interpretar, es 400; si llegó todo, per
 5. Los correos de los usuarios A y B se generan en cada ejecución, así que la colección se puede ejecutar varias veces.
 6. **Persistencia:** detener el servidor (`Ctrl + C`), volver a ejecutar `npm start` y repetir *Login usuario A* y *A sigue teniendo su favorito*. Los datos deben seguir ahí.
 
-<!-- Sección de recursos (Ambos, Tarea 38) -->
+## Interfaz web (opcional)
+
+Con el servidor encendido, abrir `http://localhost:3000` en el navegador. La página (`public/index.html`) consume la misma API: catálogo con filtro por categoría, registro e inicio de sesión, favoritos del usuario y creación, edición y eliminación de productos para el administrador. Es opcional y no reemplaza las pruebas de Postman.
+
+## Recursos y herramientas de apoyo
+
+**Documentación consultada**
+- [Express](https://expressjs.com/) — rutas, middlewares y manejo de errores
+- [node-postgres (pg)](https://node-postgres.com/) — conexión y consultas parametrizadas
+- [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) — firma y verificación de JWT
+- [bcrypt](https://github.com/kelektiv/node.bcrypt.js) — hash de contraseñas
+- [PostgreSQL](https://www.postgresql.org/docs/) — restricciones UNIQUE, CHECK y ON DELETE CASCADE
+- [Postman Learning Center](https://learning.postman.com/) — colecciones, entornos y scripts de prueba
+
+**Herramientas**
+- Visual Studio Code, Postman, PostgreSQL / pgAdmin, Git y GitHub
+
+**Asistentes de IA**
+- Melanie Bermeo: Claude (Anthropic) como apoyo para generar y explicar parte del código de autenticación, middlewares, manejo de errores, pruebas de Postman y la interfaz web. Todo el código fue revisado, probado y puede ser explicado por los integrantes.
+- José Farías: _(completar)_
