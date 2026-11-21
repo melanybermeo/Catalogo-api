@@ -7,6 +7,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "db:init": "node scripts/initDb.js",
+    "seed": "node scripts/seed.js",
     "crear-admin": "node scripts/crearAdmin.js",
     "token-vencido": "node scripts/tokenVencido.js"
   },
