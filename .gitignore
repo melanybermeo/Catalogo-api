@@ -1,0 +1,14 @@
+# Tarea 5 · Archivos que NUNCA se suben al repositorio
+node_modules/
+.env
+.env.local
+
+# Registros y archivos del sistema
+npm-debug.log*
+*.log
+.DS_Store
+Thumbs.db
+
+# Configuración local de editores
+.vscode/
+.idea/
