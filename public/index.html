@@ -173,7 +173,9 @@ async function api(ruta, opciones = {}) {
   const json = res.status === 204 ? null : await res.json().catch(() => null);
   if (!res.ok) {
     if (res.status === 401 && estado.token && !ruta.startsWith('/auth')) cerrarSesion('Tu sesión venció, inicia sesión otra vez.');
-    throw new Error(json?.error?.mensaje || 'Error ' + res.status);
+        const e = json?.error;
+    const detalles = e?.detalles ? ': ' + e.detalles.map((d) => (typeof d === 'string' ? d : JSON.stringify(d))).join(', ') : '';
+    throw new Error(e ? e.mensaje + detalles : 'Error ' + res.status);
   }
   return json;
 }
