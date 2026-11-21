@@ -27,15 +27,75 @@ Elegimos **PostgreSQL** porque los datos del proyecto son relacionales: un favor
 - Postman (para ejecutar las pruebas)
 - Git
 
-<!-- ======================================================
-     PARTE 2 (José Farías): Instalación, variables de entorno,
-     inicialización de datos y del administrador, comandos de ejecución.
-     Datos útiles para esa sección:
-       - Script de usuarios: db/01_usuarios.sql
-       - Administrador: definir ADMIN_NOMBRE, ADMIN_CORREO, ADMIN_PASSWORD en .env
-         y ejecutar `npm run crear-admin`
-       - Variables de JWT: JWT_SECRET (mín. 32 caracteres), JWT_EXPIRES_IN (ej. 1h)
-     ====================================================== -->
+## Instalación
+
+1. Clonar el repositorio e instalar las dependencias:
+
+   ```bash
+   git clone https://github.com/melanybermeo/Catalogo-api.git
+   cd Catalogo-api
+   npm install
+   ```
+
+2. Tener PostgreSQL encendido y conocer el usuario y la contraseña con los que se entra (por defecto, el usuario `postgres`).
+
+3. Crear el archivo `.env` a partir de la plantilla y completar los valores (ver la tabla siguiente):
+
+   ```bash
+   cp .env.example .env        # Windows (CMD): copy .env.example .env
+   ```
+
+   El archivo `.env` **no se sube** al repositorio (está en `.gitignore`).
+
+## Variables de entorno
+
+| Variable | Ejemplo | Para qué sirve |
+|---|---|---|
+| `PORT` | `3000` | Puerto del servidor |
+| `DB_HOST` | `localhost` | Servidor de PostgreSQL |
+| `DB_PORT` | `5432` | Puerto de PostgreSQL |
+| `DB_USER` | `postgres` | Usuario de PostgreSQL |
+| `DB_PASSWORD` | *(la suya)* | Contraseña de ese usuario |
+| `DB_NAME` | `catalogo_api` | Nombre de la base de datos (se crea sola si no existe) |
+| `JWT_SECRET` | *(texto aleatorio)* | Clave para firmar los tokens, **mínimo 32 caracteres** |
+| `JWT_EXPIRES_IN` | `1h` | Tiempo de vida del token |
+| `ADMIN_NOMBRE` | `Administrador` | Nombre del administrador |
+| `ADMIN_CORREO` | `admin@catalogo.com` | Correo del administrador |
+| `ADMIN_PASSWORD` | *(mínimo 8 caracteres)* | Contraseña del administrador |
+
+Para generar un `JWT_SECRET` seguro:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+## Inicialización de la base de datos y del administrador
+
+Ejecutar **una vez**, en este orden:
+
+```bash
+npm run db:init      # crea la base (si no existe) y las tablas de db/*.sql
+npm run seed         # carga 6 productos de ejemplo
+npm run crear-admin  # crea el administrador con los datos ADMIN_* del .env
+```
+
+- `db:init` ejecuta en orden `db/01_usuarios.sql`, `db/02_productos.sql` y `db/03_favoritos.sql`.
+- Los tres comandos se pueden repetir sin duplicar nada.
+- El rol `admin` **solo** se obtiene con `npm run crear-admin`; el registro público siempre crea usuarios con rol `usuario`.
+- Regla de borrado: al eliminar un producto, sus favoritos se eliminan automáticamente (`ON DELETE CASCADE`).
+
+## Comandos de ejecución
+
+| Comando | Qué hace |
+|---|---|
+| `npm start` | Inicia la API en `http://localhost:3000/api` |
+| `npm run dev` | Inicia la API y la reinicia sola al guardar cambios |
+| `npm run db:init` | Crea la base de datos y las tablas |
+| `npm run seed` | Carga los productos de ejemplo |
+| `npm run crear-admin` | Crea (o promueve) el administrador |
+| `npm run token-vencido` | Genera un token vencido para la prueba de 401 en Postman |
+
+Para comprobar que funciona, abrir `http://localhost:3000/api` (responde `"API Catálogo funcionando"`) o `http://localhost:3000/api/productos`.
 
 ## Rutas de la API
 
