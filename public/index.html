@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo de productos</title>
+<style>
+  :root {
+    --fondo: #f6f4f0; --tarjeta: #ffffff; --texto: #1f2328; --suave: #6b6f76;
+    --linea: #e4e0d8; --acento: #2f6f5e; --acento-claro: #e3efe9; --peligro: #b3412f;
+    --radio: 14px; --sombra: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.05);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--fondo); color: var(--texto); }
+  button { font: inherit; cursor: pointer; }
+  header {
+    position: sticky; top: 0; z-index: 5; background: rgba(246,244,240,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--linea); padding: 14px 28px; display: flex; align-items: center; gap: 16px;
+  }
+  .marca { font-weight: 700; font-size: 20px; letter-spacing: -.3px; }
+  .marca span { color: var(--acento); }
+  nav { display: flex; gap: 4px; margin-left: 12px; }
+  nav button { background: none; border: none; padding: 8px 14px; border-radius: 999px; color: var(--suave); }
+  nav button.activo { background: var(--acento-claro); color: var(--acento); font-weight: 600; }
+  .espacio { flex: 1; }
+  .usuario { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .rol { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--acento-claro); color: var(--acento); }
+  .rol.admin { background: #f4e6d8; color: #8a4b14; }
+  .btn { border: 1px solid var(--linea); background: var(--tarjeta); padding: 8px 16px; border-radius: 10px; }
+  .btn:hover { border-color: #cfc9bd; }
+  .btn.primario { background: var(--acento); border-color: var(--acento); color: #fff; }
+  .btn.primario:hover { filter: brightness(1.08); }
+  .btn.peligro { color: var(--peligro); }
+  main { max-width: 1120px; margin: 0 auto; padding: 28px; }
+  .titulo { display: flex; align-items: end; gap: 16px; margin-bottom: 18px; }
+  .titulo h1 { margin: 0; font-size: 28px; letter-spacing: -.5px; }
+  .titulo p { margin: 4px 0 0; color: var(--suave); }
+  .filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .chip { border: 1px solid var(--linea); background: var(--tarjeta); padding: 6px 14px; border-radius: 999px; font-size: 14px; text-transform: capitalize; }
+  .chip.activo { background: var(--texto); color: #fff; border-color: var(--texto); }
+  .rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+  .tarjeta {
+    background: var(--tarjeta); border: 1px solid var(--linea); border-radius: var(--radio); box-shadow: var(--sombra);
+    padding: 18px; display: flex; flex-direction: column; gap: 10px; position: relative;
+  }
+  .categoria { font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--acento); font-weight: 600; }
+  .tarjeta h3 { margin: 0; font-size: 17px; line-height: 1.3; padding-right: 34px; }
+  .tarjeta p { margin: 0; color: var(--suave); font-size: 14px; line-height: 1.45; flex: 1; }
+  .pie { display: flex; align-items: center; gap: 8px; }
+  .precio { font-size: 20px; font-weight: 700; flex: 1; }
+  .corazon {
+    position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--linea); background: #fff; font-size: 17px; line-height: 1; color: #b9b3a7;
+  }
+  .corazon.si { color: #d0435b; border-color: #f0c9d0; background: #fdf1f3; }
+  .mini { font-size: 13px; padding: 5px 10px; }
+  .vacio { text-align: center; color: var(--suave); padding: 60px 0; border: 1px dashed var(--linea); border-radius: var(--radio); }
+  .fondo-modal { position: fixed; inset: 0; background: rgba(20,20,20,.35); display: none; align-items: center; justify-content: center; z-index: 10; }
+  .fondo-modal.abierto { display: flex; }
+  .modal { background: var(--tarjeta); border-radius: 18px; padding: 26px; width: min(420px, 92vw); box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+  .modal h2 { margin: 0 0 16px; font-size: 21px; }
+  .modal label { display: block; font-size: 13px; color: var(--suave); margin: 12px 0 5px; }
+  .modal input, .modal textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--linea); border-radius: 10px; font: inherit; background: #fcfbf9;
+  }
+  .modal input:focus, .modal textarea:focus { outline: 2px solid var(--acento-claro); border-color: var(--acento); }
+  .acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .cambiar { font-size: 14px; color: var(--suave); margin-top: 14px; }
+  .cambiar a { color: var(--acento); cursor: pointer; font-weight: 600; }
+  .avisos { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 20; }
+  .aviso { background: var(--texto); color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 14px; box-shadow: var(--sombra); }
+  .aviso.error { background: var(--peligro); }
+</style>
+</head>
+<body>
+<header>
+  <div class="marca">Catálogo<span>.</span></div>
+  <nav>
+    <button id="tab-catalogo" class="activo">Catálogo</button>
+    <button id="tab-favoritos">Mis favoritos</button>
+  </nav>
+  <div class="espacio"></div>
+  <div class="usuario" id="zona-usuario"></div>
+</header>
+
+<main>
+  <div class="titulo">
+    <div>
+      <h1 id="titulo-vista">Catálogo de productos</h1>
+      <p id="subtitulo-vista">Explora los productos y guarda tus favoritos.</p>
+    </div>
+    <div class="espacio"></div>
+    <button class="btn primario" id="btn-nuevo" hidden>+ Nuevo producto</button>
+  </div>
+  <div class="filtros" id="filtros"></div>
+  <div class="rejilla" id="rejilla"></div>
+</main>
+
+<!-- Modal: iniciar sesión / registrarse -->
+<div class="fondo-modal" id="modal-sesion">
+  <form class="modal" id="form-sesion">
+    <h2 id="sesion-titulo">Iniciar sesión</h2>
+    <div id="campo-nombre" hidden>
+      <label for="s-nombre">Nombre</label>
+      <input id="s-nombre" autocomplete="name">
+    </div>
+    <label for="s-correo">Correo</label>
+    <input id="s-correo" type="email" autocomplete="email">
+    <label for="s-password">Contraseña</label>
+    <input id="s-password" type="password" autocomplete="current-password">
+    <div class="acciones">
+      <button type="button" class="btn" data-cerrar>Cancelar</button>
+      <button type="submit" class="btn primario" id="sesion-enviar">Entrar</button>
+    </div>
+    <div class="cambiar" id="sesion-cambiar"></div>
+  </form>
+</div>
+
+<!-- Modal: crear / editar producto (solo admin) -->
+<div class="fondo-modal" id="modal-producto">
+  <form class="modal" id="form-producto">
+    <h2 id="producto-titulo">Nuevo producto</h2>
+    <label for="p-nombre">Nombre</label>
+    <input id="p-nombre">
+    <label for="p-descripcion">Descripción</label>
+    <textarea id="p-descripcion" rows="3"></textarea>
+    <label for="p-categoria">Categoría</label>
+    <input id="p-categoria">
+    <label for="p-precio">Precio (USD)</label>
+    <input id="p-precio" type="number" step="0.01">
+    <div class="acciones">
+      <button type="button" class="btn" data-cerrar>Cancelar</button>
+      <button type="submit" class="btn primario">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<div class="avisos" id="avisos"></div>
+
+<script>
+// Página opcional que consume la misma API REST (no reemplaza las pruebas de Postman).
+const API = '/api';
+const estado = {
+  token: leer('token'),
+  usuario: JSON.parse(leer('usuario') || 'null'),
+  vista: 'catalogo',
+  categoria: '',
+  productos: [],
+  favoritos: new Set(),
+  modoSesion: 'login',
+  editandoId: null,
+};
+
+function leer(clave) { try { return localStorage.getItem(clave); } catch { return null; } }
+function guardar(clave, valor) { try { valor === null ? localStorage.removeItem(clave) : localStorage.setItem(clave, valor); } catch {} }
+const $ = (id) => document.getElementById(id);
+const esAdmin = () => estado.usuario && estado.usuario.rol === 'admin';
+const escapar = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function avisar(texto, tipo = '') {
+  const div = document.createElement('div');
+  div.className = 'aviso ' + tipo;
+  div.textContent = texto;
+  $('avisos').appendChild(div);
+  setTimeout(() => div.remove(), 3200);
+}
+
+// Llamada a la API: agrega el token y muestra el mensaje de error que devuelve el servidor.
+async function api(ruta, opciones = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (estado.token) headers.Authorization = 'Bearer ' + estado.token;
+  const res = await fetch(API + ruta, { ...opciones, headers });
+  const json = res.status === 204 ? null : await res.json().catch(() => null);
+  if (!res.ok) {
+    if (res.status === 401 && estado.token && !ruta.startsWith('/auth')) cerrarSesion('Tu sesión venció, inicia sesión otra vez.');
+        const e = json?.error;
+    const detalles = e?.detalles ? ': ' + e.detalles.map((d) => (typeof d === 'string' ? d : JSON.stringify(d))).join(', ') : '';
+    throw new Error(e ? e.mensaje + detalles : 'Error ' + res.status);
+  }
+  return json;
+}
+
+// ---------- Sesión ----------
+function pintarUsuario() {
+  const zona = $('zona-usuario');
+  if (estado.usuario) {
+    zona.innerHTML = `<span>Hola, <b>${escapar(estado.usuario.nombre)}</b></span>
+      <span class="rol ${esAdmin() ? 'admin' : ''}">${escapar(estado.usuario.rol)}</span>
+      <button class="btn" id="btn-salir">Salir</button>`;
+    $('btn-salir').onclick = () => cerrarSesion('Sesión cerrada.');
+  } else {
+    zona.innerHTML = `<button class="btn" id="btn-registro">Registrarse</button>
+      <button class="btn primario" id="btn-entrar">Iniciar sesión</button>`;
+    $('btn-entrar').onclick = () => abrirSesion('login');
+    $('btn-registro').onclick = () => abrirSesion('registro');
+  }
+  $('btn-nuevo').hidden = !esAdmin();
+}
+
+function abrirSesion(modo) {
+  estado.modoSesion = modo;
+  const registro = modo === 'registro';
+  $('sesion-titulo').textContent = registro ? 'Crear cuenta' : 'Iniciar sesión';
+  $('sesion-enviar').textContent = registro ? 'Registrarme' : 'Entrar';
+  $('campo-nombre').hidden = !registro;
+  $('sesion-cambiar').innerHTML = registro
+    ? '¿Ya tienes cuenta? <a id="ir-login">Inicia sesión</a>'
+    : '¿No tienes cuenta? <a id="ir-registro">Regístrate</a>';
+  const enlace = $('ir-login') || $('ir-registro');
+  enlace.onclick = () => abrirSesion(registro ? 'login' : 'registro');
+  $('modal-sesion').classList.add('abierto');
+  (registro ? $('s-nombre') : $('s-correo')).focus();
+}
+
+$('form-sesion').onsubmit = async (e) => {
+  e.preventDefault();
+  const correo = $('s-correo').value, password = $('s-password').value;
+  try {
+    if (estado.modoSesion === 'registro') {
+      await api('/auth/registro', { method: 'POST', body: JSON.stringify({ nombre: $('s-nombre').value, correo, password }) });
+      avisar('Cuenta creada. ¡Bienvenida/o!');
+    }
+    const r = await api('/auth/login', { method: 'POST', body: JSON.stringify({ correo, password }) });
+    estado.token = r.data.token;
+    estado.usuario = r.data.usuario;
+    guardar('token', estado.token);
+    guardar('usuario', JSON.stringify(estado.usuario));
+    cerrarModales();
+    $('form-sesion').reset();
+    pintarUsuario();
+    await cargarFavoritos();
+    pintar();
+    if (estado.modoSesion === 'login') avisar('Sesión iniciada.');
+  } catch (err) { avisar(err.message, 'error'); }
+};
+
+function cerrarSesion(mensaje) {
+  estado.token = null; estado.usuario = null; estado.favoritos = new Set();
+  guardar('token', null); guardar('usuario', null);
+  if (estado.vista === 'favoritos') cambiarVista('catalogo');
+  pintarUsuario(); pintar();
+  if (mensaje) avisar(mensaje);
+}
+
+// ---------- Datos ----------
+async function cargarProductos() {
+  const filtro = estado.categoria ? '?categoria=' + encodeURIComponent(estado.categoria) : '';
+  const r = await api('/productos' + filtro);
+  estado.productos = r.data;
+}
+
+let todasLasCategorias = [];
+async function cargarCategorias() {
+  const r = await api('/productos');
+  todasLasCategorias = [...new Set(r.data.map((p) => p.categoria))].sort();
+}
+
+async function cargarFavoritos() {
+  if (!estado.token) { estado.favoritos = new Set(); return []; }
+  const r = await api('/favoritos');
+  estado.favoritos = new Set(r.data.map((f) => f.producto_id));
+  return r.data;
+}
+
+// ---------- Pintar ----------
+function tarjeta(p, id) {
+  const fav = estado.favoritos.has(id);
+  const botonFav = estado.usuario
+    ? `<button class="corazon ${fav ? 'si' : ''}" data-fav="${id}" title="${fav ? 'Quitar de favoritos' : 'Agregar a favoritos'}">${fav ? '♥' : '♡'}</button>`
+    : '';
+  const botonesAdmin = esAdmin() && estado.vista === 'catalogo'
+    ? `<button class="btn mini" data-editar="${id}">Editar</button><button class="btn mini peligro" data-eliminar="${id}">Eliminar</button>`
+    : '';
+  return `<article class="tarjeta">
+      ${botonFav}
+      <div class="categoria">${escapar(p.categoria)}</div>
+      <h3>${escapar(p.nombre)}</h3>
+      <p>${escapar(p.descripcion)}</p>
+      <div class="pie"><div class="precio">$${Number(p.precio).toFixed(2)}</div>${botonesAdmin}</div>
+    </article>`;
+}
+
+async function pintar() {
+  const rejilla = $('rejilla');
+  try {
+    if (estado.vista === 'catalogo') {
+      $('titulo-vista').textContent = 'Catálogo de productos';
+      $('subtitulo-vista').textContent = estado.usuario ? 'Toca el corazón para guardar tus favoritos.' : 'Inicia sesión para guardar tus favoritos.';
+      $('filtros').innerHTML = ['', ...todasLasCategorias].map((c) =>
+        `<button class="chip ${c === estado.categoria ? 'activo' : ''}" data-cat="${escapar(c)}">${c ? escapar(c) : 'Todas'}</button>`).join('');
+      await cargarProductos();
+      rejilla.innerHTML = estado.productos.length
+        ? estado.productos.map((p) => tarjeta(p, p.id)).join('')
+        : '<div class="vacio">No hay productos en esta categoría.</div>';
+    } else {
+      $('titulo-vista').textContent = 'Mis favoritos';
+      $('subtitulo-vista').textContent = 'Solo tú ves esta lista.';
+      $('filtros').innerHTML = '';
+      const favoritos = await cargarFavoritos();
+      rejilla.innerHTML = favoritos.length
+        ? favoritos.map((f) => tarjeta(f, f.producto_id)).join('')
+        : '<div class="vacio">Todavía no tienes favoritos. Ve al catálogo y toca ♡.</div>';
+    }
+  } catch (err) { avisar(err.message, 'error'); }
+}
+
+function cambiarVista(vista) {
+  if (vista === 'favoritos' && !estado.usuario) { abrirSesion('login'); return; }
+  estado.vista = vista;
+  $('tab-catalogo').classList.toggle('activo', vista === 'catalogo');
+  $('tab-favoritos').classList.toggle('activo', vista === 'favoritos');
+  pintar();
+}
+
+// ---------- Acciones ----------
+$('tab-catalogo').onclick = () => cambiarVista('catalogo');
+$('tab-favoritos').onclick = () => cambiarVista('favoritos');
+
+$('filtros').onclick = (e) => {
+  const chip = e.target.closest('[data-cat]');
+  if (!chip) return;
+  estado.categoria = chip.dataset.cat;
+  pintar();
+};
+
+$('rejilla').onclick = async (e) => {
+  const fav = e.target.closest('[data-fav]');
+  const editar = e.target.closest('[data-editar]');
+  const eliminar = e.target.closest('[data-eliminar]');
+  try {
+    if (fav) {
+      const id = Number(fav.dataset.fav);
+      if (estado.favoritos.has(id)) {
+        await api('/favoritos/' + id, { method: 'DELETE' });
+        avisar('Quitado de favoritos.');
+      } else {
+        await api('/favoritos', { method: 'POST', body: JSON.stringify({ productoId: id }) });
+        avisar('Agregado a favoritos ♥');
+      }
+      await cargarFavoritos();
+      pintar();
+    } else if (editar) {
+      const p = estado.productos.find((x) => x.id === Number(editar.dataset.editar));
+      abrirProducto(p);
+    } else if (eliminar) {
+      const id = Number(eliminar.dataset.eliminar);
+      const p = estado.productos.find((x) => x.id === id);
+      if (!confirm(`¿Eliminar "${p.nombre}"? También se quitará de los favoritos de todos.`)) return;
+      await api('/productos/' + id, { method: 'DELETE' });
+      avisar('Producto eliminado.');
+      await cargarCategorias();
+      await cargarFavoritos();
+      pintar();
+    }
+  } catch (err) { avisar(err.message, 'error'); }
+};
+
+function abrirProducto(p) {
+  estado.editandoId = p ? p.id : null;
+  $('producto-titulo').textContent = p ? 'Editar producto' : 'Nuevo producto';
+  $('p-nombre').value = p ? p.nombre : '';
+  $('p-descripcion').value = p ? p.descripcion : '';
+  $('p-categoria').value = p ? p.categoria : '';
+  $('p-precio').value = p ? p.precio : '';
+  $('modal-producto').classList.add('abierto');
+  $('p-nombre').focus();
+}
+$('btn-nuevo').onclick = () => abrirProducto(null);
+
+$('form-producto').onsubmit = async (e) => {
+  e.preventDefault();
+  const precioTexto = $('p-precio').value;
+  const cuerpo = {
+    nombre: $('p-nombre').value,
+    descripcion: $('p-descripcion').value,
+    categoria: $('p-categoria').value,
+    precio: precioTexto === '' ? '' : Number(precioTexto),
+  };
+  try {
+    if (estado.editandoId) {
+      await api('/productos/' + estado.editandoId, { method: 'PUT', body: JSON.stringify(cuerpo) });
+      avisar('Producto actualizado.');
+    } else {
+      await api('/productos', { method: 'POST', body: JSON.stringify(cuerpo) });
+      avisar('Producto creado.');
+    }
+    cerrarModales();
+    await cargarCategorias();
+    pintar();
+  } catch (err) { avisar(err.message, 'error'); }
+};
+
+function cerrarModales() { document.querySelectorAll('.fondo-modal').forEach((m) => m.classList.remove('abierto')); }
+document.querySelectorAll('[data-cerrar]').forEach((b) => (b.onclick = cerrarModales));
+document.querySelectorAll('.fondo-modal').forEach((m) => m.addEventListener('click', (e) => { if (e.target === m) cerrarModales(); }));
+
+// ---------- Inicio ----------
+(async () => {
+  pintarUsuario();
+  try {
+    await cargarCategorias();
+    if (estado.token) await cargarFavoritos();
+  } catch (err) { avisar(err.message, 'error'); }
+  pintar();
+})();
+</script>
+</body>
+</html>
