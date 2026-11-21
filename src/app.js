@@ -10,8 +10,7 @@ app.get('/api', (req, res) => res.json({ ok: true, mensaje: 'API Catálogo funci
 
 app.use('/api/auth', authRoutes);
 app.use('/api/productos', require('./routes/productos.routes'));
-// José: descomentar cuando estén listas las rutas de favoritos
-// app.use('/api/favoritos', require('./routes/favoritos.routes'));
+app.use('/api/favoritos', require('./routes/favoritos.routes'));
 
 // Estas dos SIEMPRE van al final
 app.use(rutaNoEncontrada);
