@@ -1,0 +1,1394 @@
+{
+  "info": {
+    "_postman_id": "518aa22b-4b25-486d-8bb1-cd47bd8a351b",
+    "name": "Catálogo API — Pruebas de José (productos y favoritos)",
+    "description": "Tareas 30 y 31. Ejecutar con el entorno «Catálogo API (local)» y el servidor encendido. Es independiente: crea su propio usuario y su propio producto de prueba.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Preparación (login admin y usuario)",
+      "item": [
+        {
+          "name": "00 Login admin (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Rol admin\", () => pm.expect(j.data.usuario.rol).to.eql(\"admin\"));",
+                  "pm.environment.set(\"tokenAdmin\", j.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{adminCorreo}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "00 Registro usuario de favoritos (201)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"correoFav\", `usuario.fav.${Date.now()}@prueba.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/registro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "registro"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario Favoritos\",\n  \"correo\": \"{{correoFav}}\",\n  \"password\": \"{{passwordPrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "00 Login usuario de favoritos (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Rol usuario\", () => pm.expect(j.data.usuario.rol).to.eql(\"usuario\"));",
+                  "pm.environment.set(\"tokenFav\", j.data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{correoFav}}\",\n  \"password\": \"{{passwordPrueba}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Productos (Tarea 30)",
+      "item": [
+        {
+          "name": "P01 Listar catálogo sin token (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Devuelve una lista con al menos 5 productos\", () => {",
+                  "  pm.expect(j.ok).to.eql(true);",
+                  "  pm.expect(j.data).to.be.an(\"array\");",
+                  "  pm.expect(j.data.length).to.be.at.least(5);",
+                  "});",
+                  "const p = j.data[0];",
+                  "pm.test(\"Tiene todos los campos del producto\", () => {",
+                  "  pm.expect(p).to.include.all.keys(\"id\", \"nombre\", \"descripcion\", \"categoria\", \"precio\");",
+                  "  pm.expect(p.precio).to.be.a(\"number\");",
+                  "});",
+                  "pm.collectionVariables.set(\"productoSeedId\", j.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P02 Filtrar por categoría hogar (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Solo devuelve productos de la categoría hogar\", () => {",
+                  "  pm.expect(j.data.length).to.be.above(0);",
+                  "  j.data.forEach(p => pm.expect(p.categoria.toLowerCase()).to.eql(\"hogar\"));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos?categoria=hogar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos?categoria=hogar"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P03 Filtrar por categoría que no existe (200, lista vacía)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Lista vacía\", () => pm.expect(pm.response.json().data).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos?categoria=categoria-inexistente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos?categoria=categoria-inexistente"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P04 Admin crea producto (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "const p = j.data;",
+                  "pm.test(\"Devuelve el producto creado con id\", () => {",
+                  "  pm.expect(j.ok).to.eql(true);",
+                  "  pm.expect(p.id).to.be.a(\"number\");",
+                  "  pm.expect(p.nombre).to.eql(\"Parlante portátil Ola\");",
+                  "  pm.expect(p.precio).to.eql(45.5);",
+                  "});",
+                  "pm.collectionVariables.set(\"productoCreadoId\", p.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Parlante portátil Ola\",\n  \"descripcion\": \"Parlante Bluetooth resistente al agua.\",\n  \"categoria\": \"electronica\",\n  \"precio\": 45.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P05 Obtener el producto creado (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json().data;",
+                  "pm.test(\"Tiene todos los campos del producto\", () => {",
+                  "  pm.expect(p).to.include.all.keys(\"id\", \"nombre\", \"descripcion\", \"categoria\", \"precio\");",
+                  "  pm.expect(p.precio).to.be.a(\"number\");",
+                  "});",
+                  "pm.test(\"Es el producto creado\", () => pm.expect(String(p.id)).to.eql(String(pm.collectionVariables.get(\"productoCreadoId\"))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos/{{productoCreadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "{{productoCreadoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P06 Admin actualiza producto (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json().data;",
+                  "pm.test(\"Los datos cambiaron\", () => {",
+                  "  pm.expect(p.nombre).to.eql(\"Parlante portátil Ola Max\");",
+                  "  pm.expect(p.precio).to.eql(52.99);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/{{productoCreadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "{{productoCreadoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Parlante portátil Ola Max\",\n  \"descripcion\": \"Parlante Bluetooth resistente al agua.\",\n  \"categoria\": \"electronica\",\n  \"precio\": 52.99\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P07 Crear con precio 0 (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Error DATOS_INVALIDOS con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"DATOS_INVALIDOS\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Parlante portátil Ola\",\n  \"descripcion\": \"Parlante Bluetooth resistente al agua.\",\n  \"categoria\": \"electronica\",\n  \"precio\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P08 Crear con precio negativo (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Error DATOS_INVALIDOS con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"DATOS_INVALIDOS\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Parlante portátil Ola\",\n  \"descripcion\": \"Parlante Bluetooth resistente al agua.\",\n  \"categoria\": \"electronica\",\n  \"precio\": -10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P09 Crear con precio que no es número (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Error DATOS_INVALIDOS con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"DATOS_INVALIDOS\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Parlante portátil Ola\",\n  \"descripcion\": \"Parlante Bluetooth resistente al agua.\",\n  \"categoria\": \"electronica\",\n  \"precio\": \"barato\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P10 Crear con campos vacíos (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error CAMPOS_OBLIGATORIOS con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"CAMPOS_OBLIGATORIOS\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Indica los campos faltantes\", () =>",
+                  "  pm.expect(pm.response.json().error.detalles).to.include.members([\"nombre\", \"descripcion\", \"categoria\", \"precio\"]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"\",\n  \"descripcion\": \"  \",\n  \"categoria\": \"\",\n  \"precio\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P11 Actualizar con precio inválido (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"Error DATOS_INVALIDOS con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"DATOS_INVALIDOS\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/{{productoCreadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "{{productoCreadoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Parlante portátil Ola\",\n  \"descripcion\": \"Parlante Bluetooth resistente al agua.\",\n  \"categoria\": \"electronica\",\n  \"precio\": -1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P12 Obtener producto con id inválido (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error ID_INVALIDO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"ID_INVALIDO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "abc"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P13 Obtener producto inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error PRODUCTO_NO_ENCONTRADO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"PRODUCTO_NO_ENCONTRADO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos/2147483647",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "2147483647"
+              ]
+            }
+          }
+        },
+        {
+          "name": "P14 Actualizar producto inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error PRODUCTO_NO_ENCONTRADO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"PRODUCTO_NO_ENCONTRADO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/2147483647",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "2147483647"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Parlante portátil Ola\",\n  \"descripcion\": \"Parlante Bluetooth resistente al agua.\",\n  \"categoria\": \"electronica\",\n  \"precio\": 45.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P15 Eliminar producto inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error PRODUCTO_NO_ENCONTRADO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"PRODUCTO_NO_ENCONTRADO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/2147483647",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "2147483647"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Favoritos (Tarea 31)",
+      "item": [
+        {
+          "name": "F01 Agregar favorito (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Devuelve el favorito con los datos del producto\", () => {",
+                  "  pm.expect(j.ok).to.eql(true);",
+                  "  pm.expect(String(j.data.producto_id)).to.eql(String(pm.collectionVariables.get(\"productoCreadoId\")));",
+                  "  pm.expect(j.data).to.have.property(\"nombre\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoId\": {{productoCreadoId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "F02 Agregar el mismo favorito otra vez (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Error FAVORITO_DUPLICADO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"FAVORITO_DUPLICADO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoId\": {{productoCreadoId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "F03 Agregar producto inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error PRODUCTO_NO_ENCONTRADO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"PRODUCTO_NO_ENCONTRADO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoId\": 2147483647\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "F04 Agregar sin productoId (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error CAMPOS_OBLIGATORIOS con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"CAMPOS_OBLIGATORIOS\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "F05 Agregar con productoId inválido (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Error ID_INVALIDO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"ID_INVALIDO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoId\": \"abc\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "F06 Agregar ignorando un usuarioId enviado por el cliente (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"No devuelve ni usa el usuarioId del cuerpo\", () => pm.expect(pm.response.json().data).to.not.have.property(\"usuario_id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productoId\": {{productoSeedId}},\n  \"usuarioId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "F07 Listar mis favoritos (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const contiene = (lista, id) => (lista || []).some(f => String(f.producto_id) === String(id));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Aparecen los dos favoritos agregados\", () => {",
+                  "  pm.expect(j.data).to.have.lengthOf(2);",
+                  "  pm.expect(contiene(j.data, pm.collectionVariables.get(\"productoCreadoId\"))).to.eql(true);",
+                  "  pm.expect(contiene(j.data, pm.collectionVariables.get(\"productoSeedId\"))).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "F08 Quitar favorito (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Confirma el producto quitado\", () =>",
+                  "  pm.expect(String(pm.response.json().data.producto_id)).to.eql(String(pm.collectionVariables.get(\"productoSeedId\"))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos/{{productoSeedId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos",
+                "{{productoSeedId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "F09 Quitar un favorito que ya no está (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error FAVORITO_NO_ENCONTRADO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"FAVORITO_NO_ENCONTRADO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos/{{productoSeedId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos",
+                "{{productoSeedId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "F10 Listar: ya no aparece el favorito quitado (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const contiene = (lista, id) => (lista || []).some(f => String(f.producto_id) === String(id));",
+                  "const j = pm.response.json();",
+                  "pm.test(\"Solo queda un favorito\", () => {",
+                  "  pm.expect(j.data).to.have.lengthOf(1);",
+                  "  pm.expect(contiene(j.data, pm.collectionVariables.get(\"productoSeedId\"))).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "F11 Admin elimina el producto que está en favoritos (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Mensaje de eliminación\", () => pm.expect(pm.response.json().mensaje).to.be.a(\"string\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/productos/{{productoCreadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "{{productoCreadoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "F12 El favorito se borró en cascada (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+                  "const contiene = (lista, id) => (lista || []).some(f => String(f.producto_id) === String(id));",
+                  "pm.test(\"El producto eliminado ya no está en favoritos\", () =>",
+                  "  pm.expect(contiene(pm.response.json().data, pm.collectionVariables.get(\"productoCreadoId\"))).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tokenFav}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "favoritos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "F13 El producto eliminado ya no existe (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Estado 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Error PRODUCTO_NO_ENCONTRADO con formato consistente\", () => {",
+                  "  const j = pm.response.json();",
+                  "  pm.expect(j.ok).to.eql(false);",
+                  "  pm.expect(j.error.codigo).to.eql(\"PRODUCTO_NO_ENCONTRADO\");",
+                  "  pm.expect(j.error.mensaje).to.be.a(\"string\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/productos/{{productoCreadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "productos",
+                "{{productoCreadoId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "passwordPrueba",
+      "value": "ClavePrueba123"
+    },
+    {
+      "key": "correoFav",
+      "value": ""
+    },
+    {
+      "key": "productoCreadoId",
+      "value": ""
+    },
+    {
+      "key": "productoSeedId",
+      "value": ""
+    }
+  ]
+}
