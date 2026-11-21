@@ -9,8 +9,8 @@ app.use(express.json());
 app.get('/api', (req, res) => res.json({ ok: true, mensaje: 'API Catálogo funcionando' }));
 
 app.use('/api/auth', authRoutes);
-// José: descomentar cuando estén listas sus rutas
-// app.use('/api/productos', require('./routes/productos.routes'));
+app.use('/api/productos', require('./routes/productos.routes'));
+// José: descomentar cuando estén listas las rutas de favoritos
 // app.use('/api/favoritos', require('./routes/favoritos.routes'));
 
 // Estas dos SIEMPRE van al final
