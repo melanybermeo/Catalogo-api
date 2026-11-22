@@ -173,5 +173,5 @@ Con el servidor encendido, abrir `http://localhost:3000` en el navegador. La pá
 - Visual Studio Code, Postman, PostgreSQL / pgAdmin, Git y GitHub
 
 **Asistentes de IA**
-- Melanie Bermeo: Claude (Anthropic) como apoyo para la interfaz web, todo el código fue revisado, probado y puede ser explicado por los integrantes.
+- Melanie Bermeo: Claude (Anthropic) como asistente durante el desarrollo (autenticación, middlewares, pruebas de Postman e interfaz web). El código fue revisado, probado y adaptado por los integrantes, que pueden explicarlo en su totalidad.
 - José Farías: _(completar)_
