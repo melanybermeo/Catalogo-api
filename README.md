@@ -174,4 +174,4 @@ Con el servidor encendido, abrir `http://localhost:3000` en el navegador. La pá
 
 **Asistentes de IA**
 - Melanie Bermeo: Claude (Anthropic) como asistente durante el desarrollo (autenticación, middlewares, pruebas de Postman e interfaz web). El código fue revisado, probado y adaptado por los integrantes, que pueden explicarlo en su totalidad.
-- José Farías: _(completar)_
+- José Farías: Claude (Anthropic) como asistente durante el desarrollo. El código fue revisado, probado y adaptado por los integrantes, que pueden explicarlo en su totalidad.
